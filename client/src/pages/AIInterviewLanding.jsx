@@ -14,6 +14,7 @@ export default function AIInterviewLanding() {
     topics: "",
   });
   const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(false); // 👈 add loading state
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -33,28 +34,34 @@ export default function AIInterviewLanding() {
   };
 
   const handleStartInterview = async () => {
-    const token = await user.getIdToken(true);
-    const formUpload = new FormData();
+    setLoading(true); // disable button
+    try {
+      const token = await user.getIdToken(true);
+      const formUpload = new FormData();
 
-    formUpload.append("role", formData.role);
-    formUpload.append("experience", formData.experience);
-    formUpload.append("topics", formData.topics);
-    if (resume) formUpload.append("resumePdf", resume);
-    if (jdFile) formUpload.append("jdPdf", jdFile);
+      formUpload.append("role", formData.role);
+      formUpload.append("experience", formData.experience);
+      formUpload.append("topics", formData.topics);
+      if (resume) formUpload.append("resumePdf", resume);
+      if (jdFile) formUpload.append("jdPdf", jdFile);
 
-    const res = await fetch(
-      "http://localhost:5000/api/interview/generate-questions",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formUpload,
-      }
-    );
+      const res = await fetch(
+        "http://localhost:5000/api/interview/generate-questions",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formUpload,
+        }
+      );
 
-    const data = await res.json();
-    navigate("/mock-interview", { state: { questions: data.questions } });
+      const data = await res.json();
+      navigate("/mock-interview", { state: { questions: data.questions } });
+    } catch (err) {
+      console.error("❌ Error starting interview:", err);
+      setLoading(false); // re-enable on failure
+    }
   };
 
   return (
@@ -108,12 +115,16 @@ export default function AIInterviewLanding() {
 
         <button
           onClick={handleStartInterview}
-          className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700"
+          disabled={loading}
+          className={`w-full py-2 rounded text-white ${
+            loading
+              ? "bg-gray-400 cursor-not-allowed"
+              : "bg-green-600 hover:bg-green-700"
+          }`}
         >
-          Start Mock Interview 🎥
+          {loading ? "Generating Questions..." : "Start Mock Interview 🎥"}
         </button>
       </div>
-
       {/* MIDDLE: What to Expect */}
       <div className="w-2/4 bg-white shadow p-4 rounded">
         <h2 className="text-xl font-semibold mb-4">What to Expect</h2>

@@ -2,12 +2,9 @@ import React, { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 function chunkString(str, size = 120) {
-  // Splits a string into smaller pieces to avoid Web Speech cutting out
   const chunks = [];
-  let i = 0;
-  while (i < str.length) {
+  for (let i = 0; i < str.length; i += size) {
     chunks.push(str.slice(i, i + size));
-    i += size;
   }
   return chunks;
 }
@@ -16,79 +13,139 @@ const MockInterview = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const questions = location.state?.questions || [];
+  const originalQuestions = location.state?.questions || [];
+  const questions = originalQuestions.slice(1); // 👈 skip heading
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answerTime, setAnswerTime] = useState(30);
-  const [phase, setPhase] = useState("read");
+  const [phase, setPhase] = useState("starting");
   const [answers, setAnswers] = useState(() => questions.map(() => ""));
+
   const [feedback, setFeedback] = useState("");
 
   const hasSpokenRef = useRef(false);
+  const videoRef = useRef(null);
+  const mediaRecorderRef = useRef(null);
+  const [stream, setStream] = useState(null);
+  const [isRecording, setIsRecording] = useState(false);
 
-  // 1) Splits question into chunks & speak them sequentially
-  const speakQuestionInChunks = (fullText) => {
-    const chunks = chunkString(fullText, 120);
+  // 📸 Start webcam + mic
+  const recognitionRef = useRef(null);
 
+  const startRecording = async () => {
+    try {
+      const mediaStream = await navigator.mediaDevices.getUserMedia({
+        video: true,
+        audio: true,
+      });
+      setStream(mediaStream);
+      videoRef.current.srcObject = mediaStream;
+      videoRef.current.play();
+
+      const SpeechRecognition =
+        window.SpeechRecognition || window.webkitSpeechRecognition;
+      const recognition = new SpeechRecognition();
+      recognition.lang = "en-US";
+      recognition.continuous = true;
+      recognition.interimResults = true;
+
+      recognition.onresult = (e) => {
+        const transcript = Array.from(e.results)
+          .map((result) => result[0].transcript)
+          .join("");
+
+        // 🧠 Update current answer as user speaks
+        setAnswers((prev) => {
+          const updated = [...prev];
+          updated[currentIndex] = transcript;
+          return updated;
+        });
+      };
+
+      recognition.onerror = (e) => {
+        console.error("Speech recognition error:", e);
+      };
+
+      recognition.start();
+      recognitionRef.current = recognition;
+
+      const recorder = new MediaRecorder(mediaStream);
+      mediaRecorderRef.current = recorder;
+      recorder.start();
+      setIsRecording(true);
+    } catch (err) {
+      console.error("🎥 Error accessing camera/mic", err);
+    }
+  };
+
+  const stopRecording = () => {
+    if (
+      mediaRecorderRef.current &&
+      mediaRecorderRef.current.state !== "inactive"
+    ) {
+      mediaRecorderRef.current.stop();
+    }
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+    }
+    if (stream) {
+      stream.getTracks().forEach((track) => track.stop());
+    }
+    setIsRecording(false);
+  };
+
+  const speakQuestionInChunks = (text) => {
+    const chunks = chunkString(text);
     const voices = window.speechSynthesis.getVoices();
-    const preferredVoice = voices.find(
-      (v) => v.name.includes("Google") && v.lang === "en-US"
-    );
+    const voice =
+      voices.find((v) => v.name.includes("Google") && v.lang === "en-US") ||
+      voices[0];
 
-    let currentChunkIndex = 0;
-
+    let index = 0;
     const speakChunk = () => {
-      if (currentChunkIndex >= chunks.length) {
-        // All chunks spoken => transition to answer
+      if (index >= chunks.length) {
         setPhase("answer");
         setAnswerTime(30);
+        startRecording();
         return;
       }
-
-      const utterance = new SpeechSynthesisUtterance(chunks[currentChunkIndex]);
-      utterance.voice = preferredVoice || voices[0];
+      const utterance = new SpeechSynthesisUtterance(chunks[index]);
+      utterance.voice = voice;
       utterance.lang = "en-US";
       utterance.rate = 1;
       utterance.pitch = 1;
-
       utterance.onend = () => {
-        currentChunkIndex++;
-        speakChunk(); // speak next chunk
+        index++;
+        speakChunk();
       };
-
-      utterance.onerror = (e) => {
-        console.error("Speech error on chunk:", e);
-        // If error, just skip to answer phase
+      utterance.onerror = () => {
+        console.error("❌ Speech error");
         setPhase("answer");
         setAnswerTime(30);
+        startRecording();
       };
-
-      // Cancel any ongoing speech for safety
       window.speechSynthesis.cancel();
       window.speechSynthesis.speak(utterance);
     };
-
-    speakChunk(); // start speaking the first chunk
+    speakChunk();
   };
 
   useEffect(() => {
     return () => {
-      // Cleanup speech when navigating away
-      if (window.speechSynthesis && window.speechSynthesis.speaking) {
-        window.speechSynthesis.cancel();
-      }
+      window.speechSynthesis.cancel();
+      stopRecording();
     };
   }, []);
 
-  // 2) Called once per question, if phase = read
   useEffect(() => {
-    if (phase === "read" && !hasSpokenRef.current && questions[currentIndex]) {
-      hasSpokenRef.current = true;
-      speakQuestionInChunks(questions[currentIndex]);
+    if (phase === "starting") {
+      const timer = setTimeout(() => {
+        setPhase("read");
+      }, 2000); // 2 second delay
+      return () => clearTimeout(timer);
     }
-  }, [phase, currentIndex, questions]);
+  }, [phase]);
 
-  // 3) Timer for the "answer" phase
   useEffect(() => {
     if (phase === "answer" && answerTime > 0) {
       const timer = setTimeout(() => setAnswerTime((prev) => prev - 1), 1000);
@@ -98,8 +155,29 @@ const MockInterview = () => {
     }
   }, [phase, answerTime]);
 
-  // 4) Move to next question or generate feedback
+  useEffect(() => {
+    const handleVoices = () => {
+      if (
+        phase === "read" &&
+        !hasSpokenRef.current &&
+        questions[currentIndex]
+      ) {
+        hasSpokenRef.current = true;
+        speakQuestionInChunks(questions[currentIndex]);
+      }
+    };
+
+    // If voices are already available
+    if (speechSynthesis.getVoices().length) {
+      handleVoices();
+    } else {
+      // Wait for voices to load
+      speechSynthesis.onvoiceschanged = handleVoices;
+    }
+  }, [phase, currentIndex, questions]);
+
   const nextQuestion = () => {
+    stopRecording();
     if (currentIndex + 1 < questions.length) {
       setCurrentIndex((prev) => prev + 1);
       setPhase("read");
@@ -111,14 +189,6 @@ const MockInterview = () => {
     }
   };
 
-  // 5) Track typed answers
-  const handleAnswerChange = (e) => {
-    const newAnswers = [...answers];
-    newAnswers[currentIndex] = e.target.value;
-    setAnswers(newAnswers);
-  };
-
-  // 6) Generate AI feedback
   const generateFeedback = async () => {
     const userAnswers = questions.map((q, i) => ({
       question: q,
@@ -138,7 +208,6 @@ const MockInterview = () => {
       setFeedback(data.feedback || "No feedback received.");
       setPhase("done");
 
-      // Optional: read the feedback aloud
       const utterance = new SpeechSynthesisUtterance(data.feedback);
       utterance.lang = "en-US";
       window.speechSynthesis.speak(utterance);
@@ -149,11 +218,16 @@ const MockInterview = () => {
     }
   };
 
-  // 7) UI states
   if (!questions.length) {
     return (
-      <div className="p-6 text-center text-red-600">
-        No questions found. Please go back and restart the interview.
+      <div className="p-6 text-center text-red-600">No questions found.</div>
+    );
+  }
+
+  if (phase === "starting") {
+    return (
+      <div className="min-h-screen flex justify-center items-center text-xl font-medium text-gray-700">
+        🚀 Starting your mock interview...
       </div>
     );
   }
@@ -201,12 +275,12 @@ const MockInterview = () => {
             <div className="text-green-600 font-bold mb-2">
               Answer Time: {answerTime}s
             </div>
-            <textarea
-              value={answers[currentIndex]}
-              onChange={handleAnswerChange}
-              rows={4}
-              className="w-full border rounded p-2"
-              placeholder="Type your short answer here..."
+            <video
+              ref={videoRef}
+              className="w-full rounded border"
+              autoPlay
+              muted
+              playsInline
             />
           </>
         )}
