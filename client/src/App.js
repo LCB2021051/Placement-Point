@@ -9,6 +9,8 @@ import Navbar from "./components/Navbar";
 import JobDetails from "./pages/JobDetails";
 import AIInterviewLanding from "./pages/AIInterviewLanding";
 import MockInterview from "./pages/mockInterview";
+import PracticePage from "./pages/PracticePage";
+import SolvePage from "./pages/SolvePage";
 
 function App() {
   return (
@@ -24,6 +26,8 @@ function App() {
         <Route path="/job/:id" element={<JobDetails />} />
         <Route path="/ai/mock-interview" element={<AIInterviewLanding />} />
         <Route path="/mock-interview" element={<MockInterview />} />
+        <Route path="/practice" element={<PracticePage />} />
+        <Route path="/solve/:questionId" element={<SolvePage />} />
       </Routes>
     </Router>
   );

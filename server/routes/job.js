@@ -34,8 +34,6 @@ router.post("/post", verifyToken, upload.single("jd"), async (req, res) => {
       return res.status(400).json({ message: "JD PDF file is required" });
     }
 
-    console.log("📝 req.body =>", req.body);
-
     const {
       title,
       company,
@@ -69,10 +67,6 @@ router.post("/post", verifyToken, upload.single("jd"), async (req, res) => {
     // ✅ Assign currentStatus to first roadmap step
     const currentStatus = statusRoadmap[0] || "";
 
-    console.log("🔗 final sheetLinks =>", sheetLinks);
-    console.log("📍 statusRoadmap =>", statusRoadmap);
-    console.log("🟢 currentStatus =>", currentStatus);
-
     // Firebase upload
     const file = req.file;
     const blob = bucket.file(
@@ -94,7 +88,6 @@ router.post("/post", verifyToken, upload.single("jd"), async (req, res) => {
       try {
         await blob.makePublic();
         const publicUrl = `https://storage.googleapis.com/${bucket.name}/${blob.name}`;
-        console.log("✅ JD PDF public URL:", publicUrl);
 
         const job = new Job({
           title,
@@ -112,10 +105,8 @@ router.post("/post", verifyToken, upload.single("jd"), async (req, res) => {
         });
 
         await job.save();
-        console.log("✅ Job saved with roadmap:", job.statusRoadmap);
         return res.json({ message: "Job posted successfully!" });
       } catch (err) {
-        console.error("❌ Final save error:", err.message);
         return res.status(500).json({
           message: "Upload succeeded but save failed",
           error: err.message,

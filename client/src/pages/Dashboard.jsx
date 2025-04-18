@@ -11,10 +11,8 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchProfileAndJobs = async () => {
       if (!user) {
-        console.log("❌ No user found, skipping fetch");
         return;
       }
-      console.log("🔐 Fetching profile & jobs...");
 
       const token = await user.getIdToken(true);
 
@@ -29,13 +27,11 @@ export default function Dashboard() {
 
       if (profileRes.ok) {
         const profileData = await profileRes.json();
-        console.log("✅ Profile fetched:", profileData);
         setProfile(profileData);
       }
 
       if (jobsRes.ok) {
         const jobsData = await jobsRes.json();
-        console.log("✅ Jobs fetched:", jobsData);
         setLatestJobs(jobsData.slice(0, 4)); // limit to 4
       }
     };

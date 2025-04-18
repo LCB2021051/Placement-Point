@@ -81,6 +81,9 @@ export default function Navbar() {
         <Link to="/ai/mock-interview" className="hover:underline">
           interview
         </Link>
+        <Link to="/practice" className="hover:underline">
+          practice
+        </Link>
 
         {isAdmin && (
           <Link to="/admin/post-job" className="hover:underline">

@@ -11,7 +11,5 @@ const firebaseConfig = {
   measurementId: "G-LVX06SK2TZ",
 };
 
-console.log(process.env.REACT_APP_FIREBASE_API);
-
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
