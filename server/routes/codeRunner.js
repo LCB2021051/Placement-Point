@@ -28,7 +28,10 @@ router.post("/", async (req, res) => {
     });
   } catch (err) {
     console.error(err.response?.data || err.message);
-    res.status(500).json({ output: "Execution failed. Please try again." });
+    res.status(500).json({
+      output: "Execution failed. Please try again.",
+      message: err.message,
+    });
   }
 });
 

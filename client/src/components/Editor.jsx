@@ -1,36 +1,33 @@
-// client/src/components/Editor.jsx
 import { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import CodeMirror from "@uiw/react-codemirror";
 import { cpp } from "@codemirror/lang-cpp";
 import { python } from "@codemirror/lang-python";
 import { javascript } from "@codemirror/lang-javascript";
-import { auth } from "../firebase";
 import io from "socket.io-client";
 
-export default function Editor({ testcases, questionId, roomId }) {
+export default function Editor({ testcases, questionId, roomId, userId }) {
   const [language, setLanguage] = useState("cpp");
   const [code, setCode] = useState("// write your code here");
   const [output, setOutput] = useState("");
+  const [solutionId, setSolutionId] = useState(null);
 
   const codeRef = useRef(code);
   const socketRef = useRef(null);
   const debounceId = useRef(null);
   const remoteEdit = useRef(false);
 
-  /* --- helper --- */
-  const getLangExtension = () =>
+  const getLangExt = () =>
     language === "python"
       ? python()
       : language === "javascript"
       ? javascript()
       : cpp();
 
-  /* --- load saved code once --- */
+  /* load saved draft once uid & questionId are ready */
   useEffect(() => {
+    if (!userId || !questionId) return;
     (async () => {
-      const userId = auth.currentUser?.uid;
-      if (!userId || !questionId) return;
       try {
         const { data } = await axios.get(
           `http://localhost:5000/api/solutions/${questionId}/${userId}`
@@ -39,14 +36,15 @@ export default function Editor({ testcases, questionId, roomId }) {
           setCode(data.code);
           codeRef.current = data.code;
           setLanguage(data.language || "cpp");
+          setSolutionId(data._id);
         }
       } catch {
-        /* no saved draft */
+        /* none */
       }
     })();
-  }, [questionId]);
+  }, [questionId, userId]);
 
-  /* --- socket.io join & sync --- */
+  /* socket.io join & sync */
   useEffect(() => {
     if (!roomId) return;
     socketRef.current = io("http://localhost:5000", {
@@ -56,10 +54,6 @@ export default function Editor({ testcases, questionId, roomId }) {
     const s = socketRef.current;
     s.emit("join-room", roomId);
 
-    s.on("request-latest-code", () =>
-      s.emit("provide-code", { roomId, code: codeRef.current })
-    );
-
     const applyRemote = (incoming) => {
       if (typeof incoming === "string" && incoming !== codeRef.current) {
         remoteEdit.current = true;
@@ -67,6 +61,10 @@ export default function Editor({ testcases, questionId, roomId }) {
         codeRef.current = incoming;
       }
     };
+
+    s.on("request-latest-code", () =>
+      s.emit("provide-code", { roomId, code: codeRef.current })
+    );
     s.on("send-code", applyRemote);
     s.on("code-sync", applyRemote);
 
@@ -78,15 +76,15 @@ export default function Editor({ testcases, questionId, roomId }) {
     };
   }, [roomId]);
 
-  /* --- broadcast local edits (debounced) --- */
+  /* local typing -> debounce emit */
   const handleCodeChange = (value) => {
     setCode(value);
     codeRef.current = value;
+
     if (remoteEdit.current) {
       remoteEdit.current = false;
       return;
     }
-
     if (roomId && socketRef.current?.connected) {
       clearTimeout(debounceId.current);
       debounceId.current = setTimeout(() => {
@@ -95,38 +93,50 @@ export default function Editor({ testcases, questionId, roomId }) {
     }
   };
 
-  /* ---------- reusable save ---------- */
+  /* save helper */
   const saveSolution = async (verdict = "Draft") => {
-    const userId = auth.currentUser?.uid;
     if (!userId) {
       console.warn("No user → not saving");
       return;
     }
 
+    const payload = {
+      userId,
+      questionId,
+      code: codeRef.current,
+      language,
+      verdict,
+    };
+
     try {
-      await axios.post("http://localhost:5000/api/solutions", {
-        userId,
-        questionId,
-        code: codeRef.current,
-        language,
-        verdict,
-      });
-      console.log("[save] ✅ solution stored");
+      if (solutionId) {
+        // 🔄 update existing
+        await axios.put(
+          `http://localhost:5000/api/solutions/${solutionId}`,
+          payload
+        );
+        console.log("[save] ✅ updated");
+      } else {
+        // ➕ first‑time save
+        const { data } = await axios.post(
+          "http://localhost:5000/api/solutions",
+          payload
+        );
+        setSolutionId(data._id);
+        console.log("[save] ✅ created");
+      }
     } catch (e) {
-      if (e.response)
-        console.error("[save] ❌", e.response.status, e.response.data);
-      else console.error("[save] ❌ network error", e.message);
+      console.error("[save] ❌", e.response?.data || e.message);
     }
   };
 
-  /* ---------- run code ---------- */
+  /* run code */
   const handleRunCode = async () => {
-    setOutput("Running testcases…");
-    const userId = auth.currentUser?.uid;
     if (!userId) {
       setOutput("⚠️ User not logged in.");
       return;
     }
+    setOutput("Running testcases…");
 
     let allPassed = true;
     const results = [];
@@ -158,15 +168,11 @@ export default function Editor({ testcases, questionId, roomId }) {
         )
         .join("\n")
     );
-
-    /* save verdict as Passed / Failed */
-    await saveSolution(allPassed ? "Passed" : "Failed");
   };
 
-  /* ---------- UI ---------- */
+  /* UI */
   return (
     <div className="flex flex-col p-6 gap-4 h-full bg-gray-50">
-      {/* toolbar */}
       <div className="flex gap-2 items-center justify-between">
         <select
           value={language}
@@ -177,7 +183,6 @@ export default function Editor({ testcases, questionId, roomId }) {
           <option value="python">Python</option>
           <option value="javascript">JavaScript</option>
         </select>
-
         <div className="flex gap-2">
           <button
             onClick={() => saveSolution("Draft")}
@@ -194,16 +199,14 @@ export default function Editor({ testcases, questionId, roomId }) {
         </div>
       </div>
 
-      {/* editor */}
       <CodeMirror
         value={code}
         height="55vh"
-        extensions={[getLangExtension()]}
-        onChange={(value) => handleCodeChange(value)}
+        extensions={[getLangExt()]}
+        onChange={(v) => handleCodeChange(v)}
         theme="light"
       />
 
-      {/* terminal */}
       <div className="bg-black text-green-400 p-4 h-40 overflow-auto font-mono rounded">
         <h3 className="text-white font-bold mb-2">Terminal</h3>
         <pre>{output}</pre>

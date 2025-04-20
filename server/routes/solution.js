@@ -36,4 +36,11 @@ router.get("/:questionId/:userId", async (req, res) => {
   }
 });
 
+router.put("/:id", async (req, res) => {
+  const solution = await Solution.findByIdAndUpdate(req.params.id, req.body, {
+    new: true,
+  });
+  res.json(solution);
+});
+
 module.exports = router;
