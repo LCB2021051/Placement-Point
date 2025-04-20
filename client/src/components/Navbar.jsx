@@ -43,6 +43,9 @@ export default function Navbar() {
     }
   };
 
+  // ⛔️ Don't render Navbar if user is not logged in
+  if (!user) return null;
+
   return (
     <nav className="bg-blue-600 text-white px-6 py-3 flex items-center justify-between shadow-md">
       {/* Left: Brand */}
@@ -86,7 +89,7 @@ export default function Navbar() {
         </Link>
 
         {isAdmin && (
-          <Link to="/admin/post-job" className="hover:underline">
+          <Link to="/admin" className="hover:underline">
             Admin
           </Link>
         )}

@@ -11,6 +11,8 @@ import AIInterviewLanding from "./pages/AIInterviewLanding";
 import MockInterview from "./pages/mockInterview";
 import PracticePage from "./pages/PracticePage";
 import SolvePage from "./pages/SolvePage";
+import PostQuestion from "./pages/PostQuestion";
+import AdminDashboard from "./pages/AdminDashboard";
 
 function App() {
   return (
@@ -21,7 +23,9 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/complete-profile" element={<CompleteProfile />} />
+        <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/admin/post-job" element={<PostJob />} />
+        <Route path="/admin/post-question" element={<PostQuestion />} />
         <Route path="/search-jobs" element={<SearchJobs />} />
         <Route path="/job/:id" element={<JobDetails />} />
         <Route path="/ai/mock-interview" element={<AIInterviewLanding />} />
