@@ -32,6 +32,7 @@ function App() {
         <Route path="/mock-interview" element={<MockInterview />} />
         <Route path="/practice" element={<PracticePage />} />
         <Route path="/solve/:questionId" element={<SolvePage />} />
+        <Route path="/practice/:roomId/:questionId" element={<SolvePage />} />
       </Routes>
     </Router>
   );

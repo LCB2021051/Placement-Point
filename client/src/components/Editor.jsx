@@ -1,53 +1,127 @@
-import { useEffect, useState } from "react";
+// client/src/components/Editor.jsx
+import { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import CodeMirror from "@uiw/react-codemirror";
 import { cpp } from "@codemirror/lang-cpp";
 import { python } from "@codemirror/lang-python";
 import { javascript } from "@codemirror/lang-javascript";
 import { auth } from "../firebase";
+import io from "socket.io-client";
 
-const Editor = ({ testcases, questionId }) => {
+export default function Editor({ testcases, questionId, roomId }) {
   const [language, setLanguage] = useState("cpp");
   const [code, setCode] = useState("// write your code here");
   const [output, setOutput] = useState("");
 
-  const getLangExtension = () => {
-    switch (language) {
-      case "cpp":
-        return cpp();
-      case "python":
-        return python();
-      case "javascript":
-        return javascript();
-      default:
-        return cpp();
+  const codeRef = useRef(code);
+  const socketRef = useRef(null);
+  const debounceId = useRef(null);
+  const remoteEdit = useRef(false);
+
+  /* --- helper --- */
+  const getLangExtension = () =>
+    language === "python"
+      ? python()
+      : language === "javascript"
+      ? javascript()
+      : cpp();
+
+  /* --- load saved code once --- */
+  useEffect(() => {
+    (async () => {
+      const userId = auth.currentUser?.uid;
+      if (!userId || !questionId) return;
+      try {
+        const { data } = await axios.get(
+          `http://localhost:5000/api/solutions/${questionId}/${userId}`
+        );
+        if (data?.code) {
+          setCode(data.code);
+          codeRef.current = data.code;
+          setLanguage(data.language || "cpp");
+        }
+      } catch {
+        /* no saved draft */
+      }
+    })();
+  }, [questionId]);
+
+  /* --- socket.io join & sync --- */
+  useEffect(() => {
+    if (!roomId) return;
+    socketRef.current = io("http://localhost:5000", {
+      transports: ["websocket"],
+      forceNew: true,
+    });
+    const s = socketRef.current;
+    s.emit("join-room", roomId);
+
+    s.on("request-latest-code", () =>
+      s.emit("provide-code", { roomId, code: codeRef.current })
+    );
+
+    const applyRemote = (incoming) => {
+      if (typeof incoming === "string" && incoming !== codeRef.current) {
+        remoteEdit.current = true;
+        setCode(incoming);
+        codeRef.current = incoming;
+      }
+    };
+    s.on("send-code", applyRemote);
+    s.on("code-sync", applyRemote);
+
+    return () => {
+      s.off("request-latest-code");
+      s.off("send-code");
+      s.off("code-sync");
+      s.disconnect();
+    };
+  }, [roomId]);
+
+  /* --- broadcast local edits (debounced) --- */
+  const handleCodeChange = (value) => {
+    setCode(value);
+    codeRef.current = value;
+    if (remoteEdit.current) {
+      remoteEdit.current = false;
+      return;
+    }
+
+    if (roomId && socketRef.current?.connected) {
+      clearTimeout(debounceId.current);
+      debounceId.current = setTimeout(() => {
+        socketRef.current.emit("code-change", { roomId, code: value });
+      }, 200);
     }
   };
 
-  // ✅ Fetch previous solution on mount
-  useEffect(() => {
-    const fetchSavedSolution = async () => {
-      const userId = auth.currentUser?.uid;
-      if (!userId || !questionId) return;
+  /* ---------- reusable save ---------- */
+  const saveSolution = async (verdict = "Draft") => {
+    const userId = auth.currentUser?.uid;
+    if (!userId) {
+      console.warn("No user → not saving");
+      return;
+    }
 
-      try {
-        const res = await axios.get(
-          `http://localhost:5000/api/solutions/${questionId}/${userId}`
-        );
-        if (res.data && res.data.code) {
-          setCode(res.data.code);
-          setLanguage(res.data.language || "cpp");
-        }
-      } catch (err) {
-        console.log("No existing solution found");
-      }
-    };
+    try {
+      await axios.post("http://localhost:5000/api/solutions", {
+        userId,
+        questionId,
+        code: codeRef.current,
+        language,
+        verdict,
+      });
+      console.log("[save] ✅ solution stored");
+    } catch (e) {
+      if (e.response)
+        console.error("[save] ❌", e.response.status, e.response.data);
+      else console.error("[save] ❌ network error", e.message);
+    }
+  };
 
-    fetchSavedSolution();
-  }, [questionId]);
-
+  /* ---------- run code ---------- */
   const handleRunCode = async () => {
-    setOutput("Running testcases...");
+    setOutput("Running testcases…");
     const userId = auth.currentUser?.uid;
     if (!userId) {
       setOutput("⚠️ User not logged in.");
@@ -59,89 +133,81 @@ const Editor = ({ testcases, questionId }) => {
 
     for (const tc of testcases) {
       try {
-        const res = await axios.post("http://localhost:5000/api/run", {
-          code,
+        const { data } = await axios.post("http://localhost:5000/api/run", {
+          code: codeRef.current,
           input: tc.input,
           language,
         });
-
-        const actual = res.data.output?.trim();
+        const actual = (data.output ?? "").trim();
         const expected = tc.expectedOutput.trim();
         const passed = actual === expected;
-
         if (!passed) allPassed = false;
-
-        results.push({ input: tc.input, expected, actual, passed });
-      } catch (err) {
-        results.push({
-          input: tc.input,
-          expected: tc.expectedOutput,
-          actual: "Error",
-          passed: false,
-        });
+        results.push({ ...tc, actual, passed });
+      } catch {
+        results.push({ ...tc, actual: "Error", passed: false });
         allPassed = false;
       }
     }
 
-    let finalOutput = results
-      .map(
-        (r, idx) =>
-          `# Testcase ${idx + 1}: ${r.passed ? "✅ Pass" : "❌ Fail"}\nInput: ${
-            r.input
-          }\nExpected: ${r.expected}\nGot: ${r.actual}\n`
-      )
-      .join("\n");
+    setOutput(
+      results
+        .map(
+          (r, i) =>
+            `#${i + 1} ${r.passed ? "✅ Pass" : "❌ Fail"}\n` +
+            `Input   : ${r.input}\nExpected: ${r.expectedOutput}\nGot     : ${r.actual}\n`
+        )
+        .join("\n")
+    );
 
-    setOutput(finalOutput);
-
-    // Save solution
-    try {
-      await axios.post("http://localhost:5000/api/solutions", {
-        userId,
-        questionId,
-        code,
-        language,
-        verdict: allPassed ? "Passed" : "Failed",
-      });
-    } catch (e) {
-      console.error("❌ Failed to save solution:", e);
-    }
+    /* save verdict as Passed / Failed */
+    await saveSolution(allPassed ? "Passed" : "Failed");
   };
 
+  /* ---------- UI ---------- */
   return (
     <div className="flex flex-col p-6 gap-4 h-full bg-gray-50">
-      <div className="flex justify-between items-center">
+      {/* toolbar */}
+      <div className="flex gap-2 items-center justify-between">
         <select
-          className="border p-2 rounded bg-white"
           value={language}
           onChange={(e) => setLanguage(e.target.value)}
+          className="border p-2 rounded"
         >
           <option value="cpp">C++</option>
           <option value="python">Python</option>
           <option value="javascript">JavaScript</option>
         </select>
-        <button
-          onClick={handleRunCode}
-          className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-        >
-          Run Code
-        </button>
+
+        <div className="flex gap-2">
+          <button
+            onClick={() => saveSolution("Draft")}
+            className="bg-blue-500 text-white px-4 py-2 rounded"
+          >
+            Save Code
+          </button>
+          <button
+            onClick={handleRunCode}
+            className="bg-green-600 text-white px-4 py-2 rounded"
+          >
+            Run Code
+          </button>
+        </div>
       </div>
 
+      {/* editor */}
       <CodeMirror
         value={code}
         height="55vh"
         extensions={[getLangExtension()]}
-        onChange={(value) => setCode(value)}
+        onChange={(value) => handleCodeChange(value)}
         theme="light"
       />
 
-      <div className="bg-black text-green-400 border rounded p-4 h-40 overflow-auto font-mono">
-        <h3 className="font-bold text-white mb-2">Terminal</h3>
-        <pre className="whitespace-pre-wrap">{output}</pre>
+      {/* terminal */}
+      <div className="bg-black text-green-400 p-4 h-40 overflow-auto font-mono rounded">
+        <h3 className="text-white font-bold mb-2">Terminal</h3>
+        <pre>{output}</pre>
       </div>
     </div>
   );
-};
-
-export default Editor;
+}
