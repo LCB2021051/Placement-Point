@@ -196,7 +196,7 @@ export default function JobDetails() {
           </div>
         )}
 
-        {job.open && applyLink && (
+        {!applied && applyLink && (
           <div className="mb-10">
             <h3 className="text-lg font-semibold text-gray-800 mb-2">
               ✅ Apply Now:

@@ -13,7 +13,7 @@ initialize({
 async function generateQuestions(promptText) {
   // You can pass 'chat-bison-001' or 'text-bison-001'. We'll use text-bison-001
   const response = await generateText({
-    model: "models/text-bison-001",
+    model: "models/gemini-2.5-flash",
     prompt: {
       text: promptText,
     },
