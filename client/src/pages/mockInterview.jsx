@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import API_BASE_URL from "../config/api";
 
 function chunkString(str, size = 120) {
   const chunks = [];
@@ -197,7 +198,7 @@ const MockInterview = () => {
 
     try {
       const res = await fetch(
-        "http://localhost:5000/api/interview/generate-feedback",
+        `${API_BASE_URL}/api/interview/generate-feedback`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

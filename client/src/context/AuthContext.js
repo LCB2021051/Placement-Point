@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth } from "../firebase";
+import API_BASE_URL from "../config/api";
 
 const AuthContext = createContext();
 export const useAuth = () => useContext(AuthContext);
@@ -44,7 +45,7 @@ export const AuthProvider = ({ children }) => {
 const checkProfile = async (firebaseUser) => {
   try {
     const token = await firebaseUser.getIdToken(true); // Force refresh token
-    const res = await fetch("http://localhost:5000/api/user/check", {
+    const res = await fetch(`${API_BASE_URL}/api/user/check`, {
       headers: { Authorization: `Bearer ${token}` },
     });
 

@@ -5,6 +5,7 @@ import { cpp } from "@codemirror/lang-cpp";
 import { python } from "@codemirror/lang-python";
 import { javascript } from "@codemirror/lang-javascript";
 import io from "socket.io-client";
+import API_BASE_URL from "../config/api";
 
 export default function Editor({ testcases, questionId, roomId, userId }) {
   const [language, setLanguage] = useState("cpp");
@@ -30,7 +31,7 @@ export default function Editor({ testcases, questionId, roomId, userId }) {
     (async () => {
       try {
         const { data } = await axios.get(
-          `http://localhost:5000/api/solutions/${questionId}/${userId}`
+          `${API_BASE_URL}/api/solutions/${questionId}/${userId}`
         );
         if (data?.code) {
           setCode(data.code);
@@ -47,7 +48,7 @@ export default function Editor({ testcases, questionId, roomId, userId }) {
   /* socket.io join & sync */
   useEffect(() => {
     if (!roomId) return;
-    socketRef.current = io("http://localhost:5000", {
+    socketRef.current = io(API_BASE_URL, {
       transports: ["websocket"],
       forceNew: true,
     });
@@ -112,14 +113,14 @@ export default function Editor({ testcases, questionId, roomId, userId }) {
       if (solutionId) {
         // 🔄 update existing
         await axios.put(
-          `http://localhost:5000/api/solutions/${solutionId}`,
+          `${API_BASE_URL}/api/solutions/${solutionId}`,
           payload
         );
         console.log("[save] ✅ updated");
       } else {
         // ➕ first‑time save
         const { data } = await axios.post(
-          "http://localhost:5000/api/solutions",
+          `${API_BASE_URL}/api/solutions`,
           payload
         );
         setSolutionId(data._id);
@@ -143,7 +144,7 @@ export default function Editor({ testcases, questionId, roomId, userId }) {
 
     for (const tc of testcases) {
       try {
-        const { data } = await axios.post("http://localhost:5000/api/run", {
+        const { data } = await axios.post(`${API_BASE_URL}/api/run`, {
           code: codeRef.current,
           input: tc.input,
           language,

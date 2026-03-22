@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import API_BASE_URL from "../config/api";
 
 export default function CompleteProfile() {
   const { user } = useAuth();
@@ -23,7 +24,7 @@ export default function CompleteProfile() {
       // Force a fresh token, to avoid "Invalid token" if it's expired
       const token = await user.getIdToken(true);
 
-      const res = await fetch("http://localhost:5000/api/user/save", {
+      const res = await fetch(`${API_BASE_URL}/api/user/save`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

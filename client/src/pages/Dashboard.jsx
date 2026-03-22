@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { Link } from "react-router-dom";
+import API_BASE_URL from "../config/api";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -17,10 +18,10 @@ export default function Dashboard() {
       const token = await user.getIdToken(true);
 
       const [profileRes, jobsRes] = await Promise.all([
-        fetch("http://localhost:5000/api/user/profile", {
+        fetch(`${API_BASE_URL}/api/user/profile`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        fetch("http://localhost:5000/api/job/all", {
+        fetch(`${API_BASE_URL}/api/job/all`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
       ]);

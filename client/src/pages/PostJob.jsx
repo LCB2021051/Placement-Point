@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import API_BASE_URL from "../config/api";
 
 export default function PostJob() {
   const { user } = useAuth();
@@ -68,7 +69,7 @@ export default function PostJob() {
 
     if (jdFile) formData.append("jd", jdFile);
 
-    const res = await fetch("http://localhost:5000/api/job/post", {
+    const res = await fetch(`${API_BASE_URL}/api/job/post`, {
       method: "POST",
       headers: { Authorization: `Bearer ${token}` },
       body: formData,

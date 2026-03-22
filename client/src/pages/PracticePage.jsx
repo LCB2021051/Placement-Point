@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
+import API_BASE_URL from "../config/api";
 
 const PracticePage = () => {
   const [questions, setQuestions] = useState([]);
 
   useEffect(() => {
     const fetchQuestions = async () => {
-      const res = await axios.get("http://localhost:5000/api/questions");
+      const res = await axios.get(`${API_BASE_URL}/api/questions`);
       setQuestions(res.data);
     };
     fetchQuestions();

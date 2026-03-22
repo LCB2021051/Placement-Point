@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import API_BASE_URL from "../config/api";
 
 export default function JobDetails() {
   const { user } = useAuth();
@@ -19,7 +20,7 @@ export default function JobDetails() {
       try {
         const token = await user.getIdToken(true);
 
-        const res = await fetch(`http://localhost:5000/api/job/${id}`, {
+        const res = await fetch(`${API_BASE_URL}/api/job/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (!res.ok) throw new Error("Job not found");
@@ -31,7 +32,7 @@ export default function JobDetails() {
         const sheetLink = jobData.sheetLinks?.[0];
         if (sheetLink && user?.email) {
           const statusRes = await fetch(
-            "http://localhost:5000/api/job/status",
+            `${API_BASE_URL}/api/job/status`,
             {
               method: "POST",
               headers: {

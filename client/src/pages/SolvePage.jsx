@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
+import API_BASE_URL from "../config/api";
 import { v4 as uuidv4 } from "uuid";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import Editor from "../components/Editor";
@@ -25,7 +26,7 @@ const SolvePage = () => {
     (async () => {
       try {
         const { data } = await axios.get(
-          `http://localhost:5000/api/questions/${questionId}`
+          `${API_BASE_URL}/api/questions/${questionId}`
         );
         setQuestion(data);
       } catch (e) {

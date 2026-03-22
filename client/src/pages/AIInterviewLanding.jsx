@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import API_BASE_URL from "../config/api";
 
 export default function AIInterviewLanding() {
   const { user } = useAuth();
@@ -19,7 +20,7 @@ export default function AIInterviewLanding() {
   useEffect(() => {
     const fetchProfile = async () => {
       const token = await user.getIdToken(true);
-      const res = await fetch("http://localhost:5000/api/user/profile", {
+      const res = await fetch(`${API_BASE_URL}/api/user/profile`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -46,7 +47,7 @@ export default function AIInterviewLanding() {
       if (jdFile) formUpload.append("jdPdf", jdFile);
 
       const res = await fetch(
-        "http://localhost:5000/api/interview/generate-questions",
+        `${API_BASE_URL}/api/interview/generate-questions`,
         {
           method: "POST",
           headers: {

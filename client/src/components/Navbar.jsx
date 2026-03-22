@@ -3,6 +3,7 @@ import { useAuth } from "../context/AuthContext";
 import { signOut } from "firebase/auth";
 import { auth } from "../firebase";
 import { useEffect, useState } from "react";
+import API_BASE_URL from "../config/api";
 
 export default function Navbar() {
   const { user } = useAuth();
@@ -21,7 +22,7 @@ export default function Navbar() {
     const checkRole = async () => {
       if (!user) return;
       const token = await user.getIdToken();
-      const res = await fetch("http://localhost:5000/api/user/profile", {
+      const res = await fetch(`${API_BASE_URL}/api/user/profile`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
