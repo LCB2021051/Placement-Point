@@ -283,6 +283,12 @@ const MockInterview = () => {
               muted
               playsInline
             />
+            <button
+              onClick={nextQuestion}
+              className="mt-4 px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded"
+            >
+              {currentIndex + 1 < questions.length ? "Save & Next" : "Save & Finish"}
+            </button>
           </>
         )}
       </div>

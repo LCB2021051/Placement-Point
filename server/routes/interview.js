@@ -60,7 +60,7 @@ router.post(
 
       // 🧠 Prompt
       const prompt = `
-You are an AI interviewer. Generate 10 interview questions for the role: ${role}.
+You are an AI interviewer. Generate 5 interview questions for the role: ${role}.
 Candidate has ${experience} experience.
 Focus on topics: ${topics}.
 
