@@ -2,6 +2,52 @@ import React, { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import API_BASE_URL from "../config/api";
 
+function formatMarkdown(text) {
+  // First pass: handle bold and italic (before list processing to avoid conflicts with *)
+  let html = text
+    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+    .replace(/(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)/g, "<em>$1</em>");
+
+  // Process line by line for block-level elements
+  const lines = html.split("\n");
+  const result = [];
+  let inList = false;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const listMatch = line.match(/^\s*[-•*]\s+(.+)$/);
+    const headingMatch = line.match(/^(#{1,3})\s+(.+)$/);
+    const hrMatch = line.match(/^---+$/);
+
+    if (listMatch) {
+      if (!inList) {
+        result.push('<ul class="list-disc ml-6 mb-2">');
+        inList = true;
+      }
+      result.push(`<li class="mb-1">${listMatch[1]}</li>`);
+    } else {
+      if (inList) {
+        result.push("</ul>");
+        inList = false;
+      }
+      if (headingMatch) {
+        const level = headingMatch[1].length;
+        const sizes = { 1: "text-2xl", 2: "text-xl", 3: "text-lg" };
+        result.push(`<h${level} class="${sizes[level]} font-bold mt-4 mb-2">${headingMatch[2]}</h${level}>`);
+      } else if (hrMatch) {
+        result.push('<hr class="my-4 border-gray-300"/>');
+      } else if (line.trim() === "") {
+        result.push("<br/>");
+      } else {
+        result.push(`<p class="mb-1">${line}</p>`);
+      }
+    }
+  }
+  if (inList) result.push("</ul>");
+
+  return result.join("");
+}
+
 function chunkString(str, size = 120) {
   const chunks = [];
   for (let i = 0; i < str.length; i += size) {
@@ -244,19 +290,28 @@ const MockInterview = () => {
   if (phase === "done") {
     return (
       <div className="min-h-screen p-6 bg-gray-100 flex flex-col items-center">
-        <div className="bg-white p-6 rounded shadow-md max-w-2xl w-full">
+        <div id="feedback-section" className="bg-white p-6 rounded shadow-md max-w-2xl w-full">
           <h2 className="text-2xl font-bold mb-4 text-green-600">
             🎯 AI Feedback
           </h2>
-          <p className="whitespace-pre-wrap text-gray-800 text-sm">
-            {feedback}
-          </p>
-          <button
-            onClick={() => navigate("/")}
-            className="mt-6 px-4 py-2 bg-blue-600 text-white rounded"
-          >
-            Back to Home
-          </button>
+          <div
+            className="text-gray-800 text-sm leading-relaxed"
+            dangerouslySetInnerHTML={{ __html: formatMarkdown(feedback) }}
+          />
+          <div className="mt-6 flex gap-3">
+            <button
+              onClick={() => navigate("/")}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded"
+            >
+              Back to Home
+            </button>
+            <button
+              onClick={() => window.print()}
+              className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded"
+            >
+              Print Analysis
+            </button>
+          </div>
         </div>
       </div>
     );
