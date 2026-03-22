@@ -18,7 +18,7 @@ const MockInterview = () => {
   const questions = originalQuestions.slice(1); // 👈 skip heading
 
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [answerTime, setAnswerTime] = useState(30);
+  const [answerTime, setAnswerTime] = useState(120);
   const [phase, setPhase] = useState("starting");
   const [answers, setAnswers] = useState(() => questions.map(() => ""));
 
@@ -106,7 +106,7 @@ const MockInterview = () => {
     const speakChunk = () => {
       if (index >= chunks.length) {
         setPhase("answer");
-        setAnswerTime(30);
+        setAnswerTime(120);
         startRecording();
         return;
       }
@@ -122,7 +122,7 @@ const MockInterview = () => {
       utterance.onerror = () => {
         console.error("❌ Speech error");
         setPhase("answer");
-        setAnswerTime(30);
+        setAnswerTime(120);
         startRecording();
       };
       window.speechSynthesis.cancel();
