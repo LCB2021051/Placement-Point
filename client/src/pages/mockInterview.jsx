@@ -143,13 +143,19 @@ const MockInterview = () => {
     streamRef.current = stream;
     if (videoRef.current) {
       videoRef.current.srcObject = stream;
+      videoRef.current.play().catch(() => {});
     }
   };
 
-  // Ensure video plays when answer phase starts
+  // Attach stream and play when video becomes visible (read/answer phase)
   useEffect(() => {
-    if (phase === "answer" && videoRef.current && videoRef.current.srcObject) {
-      videoRef.current.play().catch(() => {});
+    if ((phase === "read" || phase === "answer") && videoRef.current) {
+      if (streamRef.current && !videoRef.current.srcObject) {
+        videoRef.current.srcObject = streamRef.current;
+      }
+      if (videoRef.current.srcObject) {
+        videoRef.current.play().catch(() => {});
+      }
     }
   }, [phase]);
 
