@@ -48,29 +48,31 @@ const SolvePage = () => {
   if (!question) return <div className="p-6">Loading…</div>;
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="flex flex-col md:flex-row h-[calc(100vh-56px)] md:h-screen overflow-hidden">
       {/* ---------- left column ---------- */}
-      <div className="w-[40%] p-6 overflow-y-auto border-r bg-white relative">
-        <div className="absolute top-4 right-4">
+      <div className="w-full md:w-[40%] p-4 sm:p-6 overflow-y-auto border-b md:border-b-0 md:border-r bg-white max-h-[45vh] md:max-h-full">
+        <div className="flex flex-wrap gap-2 mb-3">
           {isCollaborative ? (
             <button
               onClick={handleCopyLink}
-              className="bg-green-600 text-white px-4 py-2 rounded text-sm"
+              className="bg-green-600 text-white px-3 py-2 rounded text-xs sm:text-sm active:bg-green-700"
             >
               Copy Invite Link
             </button>
           ) : (
             <button
               onClick={handleCreateRoom}
-              className="bg-blue-600 text-white px-4 py-2 rounded text-sm"
+              className="bg-blue-600 text-white px-3 py-2 rounded text-xs sm:text-sm active:bg-blue-700"
             >
               Create Collaborative Room
             </button>
           )}
         </div>
 
-        <h1 className="text-2xl font-bold mt-12">{question.title}</h1>
-        <p className="text-gray-600 mt-2">Difficulty: {question.difficulty}</p>
+        <h1 className="text-lg sm:text-2xl font-bold">{question.title}</h1>
+        <p className="text-gray-600 mt-1 text-sm">
+          Difficulty: {question.difficulty}
+        </p>
 
         <div className="flex flex-wrap gap-2 mt-2">
           {question.tags.map((tag, i) => (
@@ -80,10 +82,14 @@ const SolvePage = () => {
           ))}
         </div>
 
-        <p className="mt-4 whitespace-pre-wrap">{question.description}</p>
+        <p className="mt-3 whitespace-pre-wrap text-sm sm:text-base">
+          {question.description}
+        </p>
 
-        <h2 className="mt-6 font-semibold">Sample Testcases:</h2>
-        <ul className="list-disc ml-6 text-sm text-gray-700">
+        <h2 className="mt-4 font-semibold text-sm sm:text-base">
+          Sample Testcases:
+        </h2>
+        <ul className="list-disc ml-5 text-xs sm:text-sm text-gray-700">
           {question.testcases.map((tc, i) => (
             <li key={i} className="mb-2">
               <strong>Input:</strong> {tc.input} <br />
@@ -94,7 +100,7 @@ const SolvePage = () => {
       </div>
 
       {/* ---------- right column ---------- */}
-      <div className="w-[60%] h-full">
+      <div className="w-full md:w-[60%] flex-1 min-h-[55vh] md:min-h-0 md:h-full">
         <Editor
           testcases={question.testcases}
           questionId={question._id}

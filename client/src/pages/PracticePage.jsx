@@ -15,27 +15,35 @@ const PracticePage = () => {
   }, []);
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">Practice Questions</h1>
-      <div className="space-y-4">
-        {questions.map((q) => (
-          <Link to={`/solve/${q._id}`} key={q._id}>
-            <div className="p-4 border rounded shadow hover:bg-gray-50">
-              <h2 className="text-lg font-semibold">{q.title}</h2>
-              <p className="text-sm text-gray-600">{q.difficulty}</p>
-              <div className="flex gap-2 mt-2">
-                {q.tags.map((tag, idx) => (
-                  <span
-                    key={idx}
-                    className="px-2 py-1 text-xs bg-gray-200 rounded"
-                  >
-                    {tag}
-                  </span>
-                ))}
+    <div className="min-h-screen bg-gray-50 p-3 sm:p-6">
+      <div className="max-w-3xl mx-auto">
+        <h1 className="text-xl sm:text-2xl font-bold mb-4">
+          Practice Questions
+        </h1>
+        <div className="space-y-3">
+          {questions.map((q) => (
+            <Link to={`/solve/${q._id}`} key={q._id}>
+              <div className="bg-white p-4 border rounded-lg shadow-sm hover:shadow transition">
+                <h2 className="text-sm sm:text-lg font-semibold">
+                  {q.title}
+                </h2>
+                <p className="text-xs sm:text-sm text-gray-600">
+                  {q.difficulty}
+                </p>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {q.tags.map((tag, idx) => (
+                    <span
+                      key={idx}
+                      className="px-2 py-1 text-xs bg-gray-200 rounded"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
               </div>
-            </div>
-          </Link>
-        ))}
+            </Link>
+          ))}
+        </div>
       </div>
     </div>
   );

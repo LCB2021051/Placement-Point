@@ -83,116 +83,121 @@ export default function PostJob() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto mt-12 p-8 bg-white shadow-xl rounded-lg">
-      <h2 className="text-2xl font-bold mb-6 text-gray-800">
-        📄 Post a New Job
-      </h2>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Job Details */}
-        <input
-          name="title"
-          placeholder="Job Title"
-          className="w-full border rounded px-4 py-2"
-          onChange={handleChange}
-          required
-        />
-        <input
-          name="company"
-          placeholder="Company"
-          className="w-full border rounded px-4 py-2"
-          onChange={handleChange}
-          required
-        />
-        <textarea
-          name="description"
-          placeholder="Description"
-          className="w-full border rounded px-4 py-2"
-          onChange={handleChange}
-          rows={4}
-          required
-        />
-        <input
-          type="file"
-          accept=".pdf"
-          onChange={handleFileChange}
-          className="w-full"
-        />
+    <div className="min-h-screen bg-gray-50 py-6 px-3 sm:px-6">
+      <div className="max-w-2xl mx-auto p-4 sm:p-8 bg-white shadow-xl rounded-lg">
+        <h2 className="text-xl sm:text-2xl font-bold mb-5 text-gray-800">
+          Post a New Job
+        </h2>
+        <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
+          <input
+            name="title"
+            placeholder="Job Title"
+            className="w-full border rounded px-3 py-2 text-sm"
+            onChange={handleChange}
+            required
+          />
+          <input
+            name="company"
+            placeholder="Company"
+            className="w-full border rounded px-3 py-2 text-sm"
+            onChange={handleChange}
+            required
+          />
+          <textarea
+            name="description"
+            placeholder="Description"
+            className="w-full border rounded px-3 py-2 text-sm"
+            onChange={handleChange}
+            rows={4}
+            required
+          />
+          <input
+            type="file"
+            accept=".pdf"
+            onChange={handleFileChange}
+            className="w-full text-sm file:mr-3 file:py-2 file:px-3 file:rounded file:border-0 file:text-sm file:bg-blue-50 file:text-blue-700"
+          />
 
-        <hr className="my-6" />
-        <h3 className="text-lg font-semibold">🎓 Eligibility</h3>
-        <input
-          name="minGPA"
-          placeholder="Minimum GPA"
-          className="w-full border rounded px-4 py-2"
-          onChange={handleChange}
-          required
-        />
-        <input
-          name="department"
-          placeholder="Departments"
-          className="w-full border rounded px-4 py-2"
-          onChange={handleChange}
-          required
-        />
-        <input
-          name="batch"
-          placeholder="Batches"
-          className="w-full border rounded px-4 py-2"
-          onChange={handleChange}
-          required
-        />
+          <hr className="my-4" />
+          <h3 className="text-base sm:text-lg font-semibold">Eligibility</h3>
+          <input
+            name="minGPA"
+            placeholder="Minimum GPA"
+            className="w-full border rounded px-3 py-2 text-sm"
+            onChange={handleChange}
+            required
+          />
+          <input
+            name="department"
+            placeholder="Departments"
+            className="w-full border rounded px-3 py-2 text-sm"
+            onChange={handleChange}
+            required
+          />
+          <input
+            name="batch"
+            placeholder="Batches"
+            className="w-full border rounded px-3 py-2 text-sm"
+            onChange={handleChange}
+            required
+          />
 
-        <hr className="my-6" />
-        <h3 className="text-lg font-semibold">📎 Google Sheet Links</h3>
+          <hr className="my-4" />
+          <h3 className="text-base sm:text-lg font-semibold">
+            Google Sheet Links
+          </h3>
 
-        {sheetLinks.map((link, idx) => (
-          <div key={idx} className="flex gap-2 mb-2">
-            <input
-              type="url"
-              placeholder={`Sheet Link #${idx + 1}`}
-              value={link}
-              onChange={(e) => handleLinkChange(idx, e.target.value)}
-              className="flex-grow px-4 py-2 border rounded"
-              required
-            />
-            {sheetLinks.length > 1 && (
-              <button
-                type="button"
-                onClick={() => removeLinkField(idx)}
-                className=" text-white px-3 rounded "
-              >
-                ❌
-              </button>
-            )}
-          </div>
-        ))}
+          {sheetLinks.map((link, idx) => (
+            <div key={idx} className="flex gap-2 mb-2">
+              <input
+                type="url"
+                placeholder={`Sheet Link #${idx + 1}`}
+                value={link}
+                onChange={(e) => handleLinkChange(idx, e.target.value)}
+                className="flex-1 min-w-0 px-3 py-2 border rounded text-sm"
+                required
+              />
+              {sheetLinks.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => removeLinkField(idx)}
+                  className="text-red-500 px-2 text-sm shrink-0"
+                >
+                  Remove
+                </button>
+              )}
+            </div>
+          ))}
 
-        <button
-          type="button"
-          onClick={addLinkField}
-          className="text-blue-600 underline mb-4"
-        >
-          Add Another Link
-        </button>
+          <button
+            type="button"
+            onClick={addLinkField}
+            className="text-blue-600 underline text-sm mb-4"
+          >
+            Add Another Link
+          </button>
 
-        <hr className="my-6" />
-        <h3 className="text-lg font-semibold">📍 Hiring Process Roadmap</h3>
-        <input
-          type="text"
-          placeholder="e.g. Applied, OA, Technical Interview, HR, Offer"
-          value={statusRoadmap}
-          onChange={(e) => setStatusRoadmap(e.target.value)}
-          className="w-full border rounded px-4 py-2"
-          required
-        />
+          <hr className="my-4" />
+          <h3 className="text-base sm:text-lg font-semibold">
+            Hiring Process Roadmap
+          </h3>
+          <input
+            type="text"
+            placeholder="e.g. Applied, OA, Technical Interview, HR, Offer"
+            value={statusRoadmap}
+            onChange={(e) => setStatusRoadmap(e.target.value)}
+            className="w-full border rounded px-3 py-2 text-sm"
+            required
+          />
 
-        <button
-          type="submit"
-          className="w-full bg-blue-700 text-white font-semibold py-2 rounded hover:bg-blue-800 transition"
-        >
-          ✅ Post Job
-        </button>
-      </form>
+          <button
+            type="submit"
+            className="w-full bg-blue-700 text-white font-semibold py-3 rounded-lg text-sm sm:text-base hover:bg-blue-800 active:bg-blue-900 transition"
+          >
+            Post Job
+          </button>
+        </form>
+      </div>
     </div>
   );
 }

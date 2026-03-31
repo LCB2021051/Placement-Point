@@ -58,36 +58,35 @@ export default function Dashboard() {
   ];
 
   return (
-    <div className="w-full">
-      {/* Basic Profile Info */}
-      <h1 className="text-2xl font-bold text-blue-600 mb-4 p-4">
-        Welcome, {profile?.email || user?.email}
-      </h1>
-      {profile && (
-        <div className="mb-6 text-gray-800 p-4">
-          <p>
-            <strong>Role:</strong> {profile.role}
-          </p>
-          <p>
-            <strong>Department:</strong> {profile.department}
-          </p>
-          <p>
-            <strong>Batch:</strong> {profile.batch}
-          </p>
-          <p>
-            <strong>GPA:</strong> {profile.gpa}
-          </p>
-        </div>
-      )}
+    <div className="w-full min-h-screen bg-gray-50">
+      <div className="px-3 sm:px-6 py-4">
+        <h1 className="text-xl sm:text-2xl font-bold text-blue-600 mb-3">
+          Welcome, {profile?.email || user?.email}
+        </h1>
+        {profile && (
+          <div className="mb-6 text-gray-800 text-sm sm:text-base grid grid-cols-2 gap-1 sm:flex sm:gap-6">
+            <p>
+              <strong>Role:</strong> {profile.role}
+            </p>
+            <p>
+              <strong>Dept:</strong> {profile.department}
+            </p>
+            <p>
+              <strong>Batch:</strong> {profile.batch}
+            </p>
+            <p>
+              <strong>GPA:</strong> {profile.gpa}
+            </p>
+          </div>
+        )}
 
-      <h2 className="text-xl font-semibold text-gray-800 mb-2 p-4">
-        🚀 Latest Job Openings
-      </h2>
+        <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mb-3">
+          Latest Job Openings
+        </h2>
+      </div>
 
       {latestJobs.length > 0 ? (
-        // Full-width container
-        <div className="relative w-full overflow-hidden h-64">
-          {/* Slideshow "track" */}
+        <div className="relative w-full overflow-hidden h-56 sm:h-64">
           <div
             className="whitespace-nowrap transition-transform duration-700 h-full"
             style={{
@@ -97,32 +96,37 @@ export default function Dashboard() {
             {latestJobs.map((job, index) => (
               <div
                 key={job._id}
-                // Each slide has a different background color
-                className={`inline-block w-full align-top h-full box-border p-6 ${
+                className={`inline-block w-full align-top h-full box-border px-4 py-4 sm:p-6 ${
                   bgColors[index % bgColors.length]
                 }`}
               >
-                <h3 className="text-lg font-bold">{job.title}</h3>
-                <p className="text-gray-700">{job.company}</p>
-                <p className="text-sm text-gray-500 truncate mt-1 mb-2">
+                <h3 className="text-base sm:text-lg font-bold truncate">
+                  {job.title}
+                </h3>
+                <p className="text-gray-700 text-sm sm:text-base">
+                  {job.company}
+                </p>
+                <p className="text-xs sm:text-sm text-gray-500 truncate mt-1 mb-2">
                   {job.description}
                 </p>
-                <p className="text-sm">🎓 Min GPA: {job.eligibility.minGPA}</p>
-                <p className="text-sm">
-                  🧾 Departments: {job.eligibility.department.join(", ")}
+                <p className="text-xs sm:text-sm">
+                  Min GPA: {job.eligibility.minGPA}
+                </p>
+                <p className="text-xs sm:text-sm truncate">
+                  Departments: {job.eligibility.department.join(", ")}
                 </p>
                 <Link
                   to={`/job/${job._id}`}
-                  className="inline-block mt-3 px-4 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+                  className="inline-block mt-3 px-4 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 active:bg-blue-800 transition"
                 >
-                  View Details →
+                  View Details
                 </Link>
               </div>
             ))}
           </div>
         </div>
       ) : (
-        <p className="text-gray-500">No jobs available at the moment.</p>
+        <p className="text-gray-500 px-4">No jobs available at the moment.</p>
       )}
     </div>
   );

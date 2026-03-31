@@ -68,90 +68,98 @@ export default function SearchJobs() {
   };
 
   return (
-    <div className="flex gap-6 p-6">
-      {/* Left: Filters */}
-      <div className="w-1/4 bg-white shadow p-4 rounded">
-        <h2 className="text-xl font-semibold mb-4">Search Filters</h2>
-        <input
-          type="text"
-          name="title"
-          placeholder="Search by Title"
-          value={filters.title}
-          onChange={handleSearchChange}
-          className="w-full px-4 py-2 border rounded mb-4"
-        />
-        <input
-          type="text"
-          name="department"
-          placeholder="Filter by Department"
-          value={filters.department}
-          onChange={handleSearchChange}
-          className="w-full px-4 py-2 border rounded mb-4"
-        />
-        <input
-          type="number"
-          name="minGPA"
-          placeholder="Min GPA"
-          value={filters.minGPA}
-          onChange={handleSearchChange}
-          className="w-full px-4 py-2 border rounded mb-4"
-        />
-        <button
-          onClick={handleSearchClick}
-          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
-        >
-          🔍 Search
-        </button>
-      </div>
+    <div className="min-h-screen bg-gray-50 p-3 sm:p-4 lg:p-6">
+      <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 max-w-6xl mx-auto">
+        {/* Left: Filters */}
+        <div className="w-full lg:w-1/4 bg-white shadow p-4 rounded-lg order-1">
+          <h2 className="text-lg sm:text-xl font-semibold mb-3">
+            Search Filters
+          </h2>
+          <input
+            type="text"
+            name="title"
+            placeholder="Search by Title"
+            value={filters.title}
+            onChange={handleSearchChange}
+            className="w-full px-3 py-2 border rounded text-sm mb-3"
+          />
+          <input
+            type="text"
+            name="department"
+            placeholder="Filter by Department"
+            value={filters.department}
+            onChange={handleSearchChange}
+            className="w-full px-3 py-2 border rounded text-sm mb-3"
+          />
+          <input
+            type="number"
+            name="minGPA"
+            placeholder="Min GPA"
+            value={filters.minGPA}
+            onChange={handleSearchChange}
+            className="w-full px-3 py-2 border rounded text-sm mb-3"
+          />
+          <button
+            onClick={handleSearchClick}
+            className="w-full bg-blue-600 text-white py-2.5 rounded-lg text-sm font-semibold hover:bg-blue-700 active:bg-blue-800"
+          >
+            Search
+          </button>
+        </div>
 
-      {/* Middle: Results */}
-      <div className="w-2/4 bg-white">
-        {filteredJobs.length > 0 ? (
-          filteredJobs.map((job) => (
-            <Link key={job._id} to={`/job/${job._id}`}>
-              <div className="border p-4 rounded-lg my-4 hover:shadow transition">
-                <h3 className="font-semibold">{job.title}</h3>
-                <p className="text-gray-700">{job.company}</p>
-                <p className="text-sm text-gray-500">{job.description}</p>
-                <p className="text-sm">🎓 Min GPA: {job.eligibility.minGPA}</p>
-                <p className="text-sm">
-                  🧾 Departments: {job.eligibility.department.join(", ")}
-                </p>
-                <p className="text-sm">
-                  🎓 Batch: {job.eligibility.batch.join(", ")}
-                </p>
-              </div>
-            </Link>
-          ))
-        ) : (
-          <p className="text-gray-500">No jobs found matching your filters.</p>
-        )}
-      </div>
+        {/* Middle: Results */}
+        <div className="w-full lg:w-2/4 order-2">
+          {filteredJobs.length > 0 ? (
+            filteredJobs.map((job) => (
+              <Link key={job._id} to={`/job/${job._id}`}>
+                <div className="bg-white border p-4 rounded-lg mb-3 hover:shadow transition">
+                  <h3 className="font-semibold text-sm sm:text-base">
+                    {job.title}
+                  </h3>
+                  <p className="text-gray-700 text-sm">{job.company}</p>
+                  <p className="text-xs sm:text-sm text-gray-500 mt-1 line-clamp-2">
+                    {job.description}
+                  </p>
+                  <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs sm:text-sm">
+                    <p>Min GPA: {job.eligibility.minGPA}</p>
+                    <p>Dept: {job.eligibility.department.join(", ")}</p>
+                    <p>Batch: {job.eligibility.batch.join(", ")}</p>
+                  </div>
+                </div>
+              </Link>
+            ))
+          ) : (
+            <p className="text-gray-500 text-sm bg-white p-4 rounded-lg">
+              No jobs found matching your filters.
+            </p>
+          )}
+        </div>
 
-      {/* Right: Profile */}
-      <div className="w-1/4 bg-white shadow p-4 rounded">
-        <h2 className="text-xl font-semibold mb-4">My Profile</h2>
-        {profile ? (
-          <div className="space-y-2 text-sm text-gray-800">
-            <p>
-              <strong>Email:</strong> {profile.email}
-            </p>
-            <p>
-              <strong>Role:</strong> {profile.role}
-            </p>
-            <p>
-              <strong>GPA:</strong> {profile.gpa}
-            </p>
-            <p>
-              <strong>Department:</strong> {profile.department}
-            </p>
-            <p>
-              <strong>Batch:</strong> {profile.batch}
-            </p>
-          </div>
-        ) : (
-          <p className="text-gray-500">Loading profile...</p>
-        )}
+        {/* Right: Profile */}
+        <div className="w-full lg:w-1/4 bg-white shadow p-4 rounded-lg order-3">
+          <h2 className="text-lg sm:text-xl font-semibold mb-3">My Profile</h2>
+          {profile ? (
+            <div className="space-y-2 text-sm text-gray-800">
+              <p>
+                <strong>Email:</strong> {profile.email}
+              </p>
+              <p>
+                <strong>Role:</strong> {profile.role}
+              </p>
+              <p>
+                <strong>GPA:</strong> {profile.gpa}
+              </p>
+              <p>
+                <strong>Department:</strong> {profile.department}
+              </p>
+              <p>
+                <strong>Batch:</strong> {profile.batch}
+              </p>
+            </div>
+          ) : (
+            <p className="text-gray-500 text-sm">Loading profile...</p>
+          )}
+        </div>
       </div>
     </div>
   );

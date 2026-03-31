@@ -66,101 +66,110 @@ export default function AIInterviewLanding() {
   };
 
   return (
-    <div className="flex gap-6 p-6">
-      {/* LEFT: Input Form */}
-      <div className="w-1/4 bg-white shadow p-4 rounded">
-        <h2 className="text-xl font-semibold mb-4">Interview Setup</h2>
+    <div className="min-h-screen bg-gray-50 p-3 sm:p-4 md:p-6">
+      <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 max-w-6xl mx-auto">
+        {/* LEFT: Input Form */}
+        <div className="w-full lg:w-1/3 bg-white shadow p-4 sm:p-5 rounded-lg order-1">
+          <h2 className="text-lg sm:text-xl font-semibold mb-4">
+            Interview Setup
+          </h2>
 
-        <label className="text-sm block mb-1">Upload Resume (PDF)</label>
-        <input
-          type="file"
-          accept=".pdf"
-          onChange={(e) => setResume(e.target.files[0])}
-          className="mb-4 w-full"
-        />
+          <label className="text-sm block mb-1 font-medium">
+            Upload Resume (PDF)
+          </label>
+          <input
+            type="file"
+            accept=".pdf"
+            onChange={(e) => setResume(e.target.files[0])}
+            className="mb-3 w-full text-sm file:mr-3 file:py-2 file:px-3 file:rounded file:border-0 file:text-sm file:bg-blue-50 file:text-blue-700"
+          />
 
-        <label className="text-sm block mb-1">
-          Upload Job Description (PDF)
-        </label>
-        <input
-          type="file"
-          accept=".pdf"
-          onChange={(e) => setJdFile(e.target.files[0])}
-          className="mb-4 w-full"
-        />
+          <label className="text-sm block mb-1 font-medium">
+            Upload Job Description (PDF)
+          </label>
+          <input
+            type="file"
+            accept=".pdf"
+            onChange={(e) => setJdFile(e.target.files[0])}
+            className="mb-3 w-full text-sm file:mr-3 file:py-2 file:px-3 file:rounded file:border-0 file:text-sm file:bg-blue-50 file:text-blue-700"
+          />
 
-        <input
-          type="text"
-          name="role"
-          placeholder="Job Role (e.g. SDE Intern)"
-          value={formData.role}
-          onChange={handleChange}
-          className="mb-4 w-full border px-2 py-1 rounded"
-        />
-        <input
-          type="text"
-          name="experience"
-          placeholder="Experience (e.g. 0-1 years)"
-          value={formData.experience}
-          onChange={handleChange}
-          className="mb-4 w-full border px-2 py-1 rounded"
-        />
-        <input
-          type="text"
-          name="topics"
-          placeholder="Topics (comma separated)"
-          value={formData.topics}
-          onChange={handleChange}
-          className="mb-4 w-full border px-2 py-1 rounded"
-        />
+          <input
+            type="text"
+            name="role"
+            placeholder="Job Role (e.g. SDE Intern)"
+            value={formData.role}
+            onChange={handleChange}
+            className="mb-3 w-full border px-3 py-2 rounded text-sm"
+          />
+          <input
+            type="text"
+            name="experience"
+            placeholder="Experience (e.g. 0-1 years)"
+            value={formData.experience}
+            onChange={handleChange}
+            className="mb-3 w-full border px-3 py-2 rounded text-sm"
+          />
+          <input
+            type="text"
+            name="topics"
+            placeholder="Topics (comma separated)"
+            value={formData.topics}
+            onChange={handleChange}
+            className="mb-4 w-full border px-3 py-2 rounded text-sm"
+          />
 
-        <button
-          onClick={handleStartInterview}
-          disabled={loading}
-          className={`w-full py-2 rounded text-white ${
-            loading
-              ? "bg-gray-400 cursor-not-allowed"
-              : "bg-green-600 hover:bg-green-700"
-          }`}
-        >
-          {loading ? "Generating Questions..." : "Start Mock Interview 🎥"}
-        </button>
-      </div>
-      {/* MIDDLE: What to Expect */}
-      <div className="w-2/4 bg-white shadow p-4 rounded">
-        <h2 className="text-xl font-semibold mb-4">What to Expect</h2>
-        <ul className="list-disc ml-5 text-gray-700 text-sm space-y-1">
-          <li>AI generates 10–15 interview questions</li>
-          <li>You get 10 seconds to read each question</li>
-          <li>You answer via video or text in 30 seconds</li>
-          <li>Feedback will be provided at the end</li>
-        </ul>
-      </div>
+          <button
+            onClick={handleStartInterview}
+            disabled={loading}
+            className={`w-full py-3 rounded-lg text-white text-sm font-semibold ${
+              loading
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-green-600 hover:bg-green-700 active:bg-green-800"
+            }`}
+          >
+            {loading ? "Generating Questions..." : "Start Mock Interview"}
+          </button>
+        </div>
 
-      {/* RIGHT: Profile */}
-      <div className="w-1/4 bg-white shadow p-4 rounded">
-        <h2 className="text-xl font-semibold mb-4">My Profile</h2>
-        {profile ? (
-          <div className="text-sm space-y-1">
-            <p>
-              <strong>Email:</strong> {profile.email}
-            </p>
-            <p>
-              <strong>Role:</strong> {profile.role}
-            </p>
-            <p>
-              <strong>GPA:</strong> {profile.gpa}
-            </p>
-            <p>
-              <strong>Department:</strong> {profile.department}
-            </p>
-            <p>
-              <strong>Batch:</strong> {profile.batch}
-            </p>
-          </div>
-        ) : (
-          <p>Loading profile...</p>
-        )}
+        {/* MIDDLE: What to Expect */}
+        <div className="w-full lg:w-1/3 bg-white shadow p-4 sm:p-5 rounded-lg order-3 lg:order-2">
+          <h2 className="text-lg sm:text-xl font-semibold mb-3">
+            What to Expect
+          </h2>
+          <ul className="list-disc ml-5 text-gray-700 text-sm space-y-2">
+            <li>AI generates 10-15 interview questions</li>
+            <li>You get 10 seconds to read each question</li>
+            <li>You answer via video or text in 30 seconds</li>
+            <li>Feedback will be provided at the end</li>
+          </ul>
+        </div>
+
+        {/* RIGHT: Profile */}
+        <div className="w-full lg:w-1/3 bg-white shadow p-4 sm:p-5 rounded-lg order-2 lg:order-3">
+          <h2 className="text-lg sm:text-xl font-semibold mb-3">My Profile</h2>
+          {profile ? (
+            <div className="text-sm space-y-2">
+              <p>
+                <strong>Email:</strong> {profile.email}
+              </p>
+              <p>
+                <strong>Role:</strong> {profile.role}
+              </p>
+              <p>
+                <strong>GPA:</strong> {profile.gpa}
+              </p>
+              <p>
+                <strong>Department:</strong> {profile.department}
+              </p>
+              <p>
+                <strong>Batch:</strong> {profile.batch}
+              </p>
+            </div>
+          ) : (
+            <p className="text-sm text-gray-500">Loading profile...</p>
+          )}
+        </div>
       </div>
     </div>
   );
