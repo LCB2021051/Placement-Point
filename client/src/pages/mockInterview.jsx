@@ -179,7 +179,9 @@ const MockInterview = () => {
         rec.onresult = (e) => {
           let finalPart = "";
           let interimPart = "";
-          for (let i = 0; i < e.results.length; i++) {
+
+          // ✅ Start from resultIndex, not 0 — avoids reprocessing old results
+          for (let i = e.resultIndex; i < e.results.length; i++) {
             const t = e.results[i][0].transcript;
             if (e.results[i].isFinal) {
               finalPart += t;
@@ -187,10 +189,11 @@ const MockInterview = () => {
               interimPart += t;
             }
           }
-          // Save confirmed text so restarts don't lose it
+
           if (finalPart) {
             finalTranscriptRef.current += finalPart;
           }
+
           const full = finalTranscriptRef.current + interimPart;
           setAnswers((prev) => {
             const updated = [...prev];
